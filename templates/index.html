@@ -1,0 +1,2034 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Knowledge Editing Evaluation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: white;
+            color: black;
+            line-height: 1.6;
+        }
+
+        .header {
+            border-bottom: 1px solid black;
+            padding: 20px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex: 1;
+        }
+
+        .header-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header-spacer {
+            flex: 1;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header select,
+        .header input {
+            padding: 8px 12px;
+            border: 1px solid black;
+            background: white;
+            font-size: 14px;
+        }
+
+        .header select {
+            min-width: 200px;
+        }
+
+        .header input {
+            width: 60px;
+        }
+
+        .header-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-icon {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+            position: relative;
+            cursor: help;
+        }
+
+        .header-icon svg {
+            width: 100%;
+            height: 100%;
+            stroke: black;
+            fill: none;
+        }
+
+        .header-icon .tooltip {
+            visibility: hidden;
+            opacity: 0;
+            background-color: black;
+            color: white;
+            text-align: center;
+            padding: 5px 8px;
+            border-radius: 4px;
+            position: absolute;
+            z-index: 1000;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            white-space: nowrap;
+            font-size: 12px;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+
+        .header-icon .tooltip::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: black transparent transparent transparent;
+        }
+
+        .header-icon:hover .tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .header button {
+            padding: 8px 20px;
+            border: 1px solid black;
+            background: white;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+
+        .header button:hover {
+            background: #f0f0f0;
+        }
+
+        .header button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .main-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            min-height: calc(100vh - 80px);
+        }
+
+        .left-panel {
+            border-right: 1px solid black;
+            padding: 40px;
+        }
+
+        .right-panel {
+            padding: 40px;
+            overflow-y: auto;
+            max-height: calc(100vh - 80px);
+        }
+
+        .section-title {
+            border-top: 1px solid black;
+            border-bottom: 1px solid black;
+            padding: 15px 0;
+            margin: 30px 0 20px 0;
+            font-size: 18px;
+            font-weight: normal;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .clear-btn {
+            padding: 5px 15px;
+            border: 1px solid black;
+            background: white;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 0.2s;
+        }
+
+        .clear-btn:hover {
+            background: #f0f0f0;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group .field-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            color: #666;
+        }
+
+        .batch-input {
+            width: 100%;
+            min-height: 200px;
+            padding: 15px;
+            border: 1px solid black;
+            background: white;
+            font-family: inherit;
+            font-size: 14px;
+            resize: vertical;
+            margin-bottom: 20px;
+        }
+
+        .batch-input:focus {
+            outline: none;
+        }
+
+        .generate-btn {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid black;
+            background: white;
+            cursor: pointer;
+            font-size: 14px;
+            margin-bottom: 20px;
+            transition: background 0.2s;
+        }
+
+        .generate-btn:hover {
+            background: #f0f0f0;
+        }
+
+        .generate-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .output-area {
+            border: 1px solid black;
+            padding: 15px;
+            min-height: 200px;
+            background: #fafafa;
+            font-size: 14px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .case-item {
+            border-top: 1px solid black;
+            padding: 20px 0;
+        }
+
+        .case-header {
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        .case-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .case-left,
+        .case-right {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .field-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .field-value {
+            font-size: 14px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            background: white;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .field-value:hover {
+            background: #f5f5f5;
+        }
+
+        .field-value.selected {
+            background: #e8e8e8;
+            border-color: black;
+        }
+
+        .field-value.subject {
+            background: #ffeb3b;
+            color: black;
+            border: 1px solid black;
+            cursor: default;
+        }
+
+        .field-value.subject:hover {
+            background: #ffeb3b;
+        }
+
+        .field-value.target-old {
+            background: black;
+            color: white;
+            border: 1px solid black;
+            cursor: default;
+        }
+
+        .field-value.target-old:hover {
+            background: black;
+        }
+
+        .field-value.target-new {
+            background: #9c27b0;
+            color: white;
+            border: 1px solid #9c27b0;
+            cursor: default;
+        }
+
+        .field-value.target-new:hover {
+            background: #9c27b0;
+        }
+
+        .target-container {
+            display: flex;
+            gap: 10px;
+        }
+
+        .target-item {
+            flex: 1;
+        }
+
+        .target-item-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .prompt-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .prompt-item {
+            padding: 8px;
+            border: 1px solid #ddd;
+            background: white;
+            cursor: pointer;
+            font-size: 13px;
+            transition: background 0.2s;
+        }
+
+        .prompt-item:hover {
+            background: #f5f5f5;
+        }
+
+        .prompt-item.selected {
+            background: #e8e8e8;
+            border-color: black;
+        }
+
+        .selected-prompts {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+        }
+
+        .selected-prompt-item {
+            padding: 8px 12px;
+            margin: 5px 0;
+            background: #f0f0f0;
+            border: 1px solid #ccc;
+            margin-bottom: 10px;
+        }
+
+        .prompt-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .prompt-text {
+            flex: 1;
+            word-break: break-word;
+        }
+
+        .prompt-output {
+            margin-top: 8px;
+            padding: 8px;
+            background: white;
+            border: 1px solid #ddd;
+            font-size: 12px;
+            color: #666;
+            min-height: 30px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .prompt-output.loading {
+            color: #999;
+            font-style: italic;
+        }
+
+        .custom-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid black;
+            background: white;
+            font-size: 14px;
+            margin-bottom: 20px;
+            font-family: inherit;
+            resize: vertical;
+        }
+
+        .custom-input:focus {
+            outline: none;
+        }
+
+        .custom-input.textarea {
+            min-height: 60px;
+            line-height: 1.5;
+        }
+
+        .system-prompt-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            color: #666;
+        }
+
+        .remove-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #999;
+            font-size: 18px;
+            padding: 0 5px;
+        }
+
+        .remove-btn:hover {
+            color: black;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid black;
+        }
+
+        .pagination button {
+            padding: 8px 15px;
+            border: 1px solid black;
+            background: white;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background: #f0f0f0;
+        }
+
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .status {
+            font-size: 12px;
+            color: #666;
+            margin-left: 10px;
+        }
+
+        .search-container {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid black;
+            background: white;
+            font-size: 14px;
+        }
+
+        .search-input:focus {
+            outline: none;
+        }
+
+        .search-suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid black;
+            border-top: none;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        }
+
+        .search-suggestions.show {
+            display: block;
+        }
+
+        .suggestion-item {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            font-size: 13px;
+        }
+
+        .suggestion-item:hover {
+            background: #f5f5f5;
+        }
+
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+
+        .suggestion-highlight {
+            font-weight: bold;
+        }
+
+        .suggestion-meta {
+            font-size: 11px;
+            color: #666;
+            margin-top: 3px;
+        }
+
+        #resultsTable {
+            background: white;
+        }
+
+        #resultsTable thead tr {
+            background: #f0f0f0;
+        }
+
+        #resultsTable tbody tr:hover {
+            background: #f9f9f9;
+        }
+
+        #resultsTable th, #resultsTable td {
+            border: 1px solid #ddd;
+        }
+
+        #scoreTooltip {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-left">
+            <div class="header-group">
+                <select id="modelName">
+                    <option value="google/gemma-2-2b">Gemma 2 2B</option>
+                    <option value="google/gemma-2-9b">Gemma 2 9B</option>
+                    <option value="google/gemma-2-2b-it">Gemma 2 2B Instruct</option>
+                    <option value="google/gemma-2-9b-it">Gemma 2 9B Instruct</option>
+                    <option value="microsoft/phi-2">Phi-2</option>
+                    <option value="Qwen/Qwen2-1.5B">Qwen2 1.5B</option>
+                    <option value="Qwen/Qwen2-7B">Qwen2 7B</option>
+                    <option value="meta-llama/Llama-2-7b-hf">Llama 2 7B</option>
+                    <option value="custom">Custom</option>
+                </select>
+                
+                <div class="header-item">
+                    <div class="header-icon">
+                        <svg viewBox="0 0 24 24" stroke-width="1.5">
+                            <rect x="2" y="4" width="20" height="16" rx="1"/>
+                            <rect x="5" y="7" width="14" height="10" rx="0.5"/>
+                            <path d="M9 7v10M15 7v10M5 12h14"/>
+                        </svg>
+                        <span class="tooltip">CUDA_VISIBLE_DEVICES</span>
+                    </div>
+                    <input type="text" id="cudaDevices" placeholder="0" value="0">
+                </div>
+                
+                <input type="text" id="customModelName" placeholder="Custom model" style="display: none;">
+                <button onclick="loadModel()" id="loadBtn">Load</button>
+                <span id="loadStatus" class="status"></span>
+            </div>
+            
+            <div class="header-spacer"></div>
+            
+            <div class="header-group">
+                <div class="header-item">
+                    <div class="header-icon">
+                        <svg viewBox="0 0 24 24" stroke-width="1.5">
+                            <path d="M4 6h16M4 12h16M4 18h16"/>
+                            <circle cx="2" cy="6" r="1.5" fill="black"/>
+                            <circle cx="2" cy="12" r="1.5" fill="black"/>
+                            <circle cx="2" cy="18" r="1.5" fill="black"/>
+                        </svg>
+                        <span class="tooltip">Max Tokens</span>
+                    </div>
+                    <input type="number" id="maxLength" value="15" min="1" max="2048" style="width: 60px;">
+                </div>
+                
+                <div class="header-item">
+                    <div class="header-icon">
+                        <svg viewBox="0 0 24 24" stroke-width="1.5">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M12 2v4M12 18v4M2 12h4M18 12h4"/>
+                            <path d="M6.34 6.34l2.83 2.83M14.83 14.83l2.83 2.83M6.34 17.66l2.83-2.83M14.83 9.17l2.83-2.83"/>
+                        </svg>
+                        <span class="tooltip">Temperature</span>
+                    </div>
+                    <input type="number" id="temperature" value="0.7" min="0" max="2" step="0.1" style="width: 60px;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Generation Page -->
+    <div id="generationPage" class="main-container">
+        <!-- Left Panel: Batch Input and Generation -->
+        <div class="left-panel">
+            <div class="system-prompt-label">System Prompt</div>
+            <textarea id="systemPromptInput" class="custom-input textarea" placeholder="Enter system prompt (will be prepended to all prompts)...">You are a helpful assistant. For the given sentences, generate responses based on factual relationships.</textarea>
+            <textarea id="customPromptInput" class="custom-input textarea" placeholder="Enter prompt and press Enter (Shift+Enter for new line)..."></textarea>
+            <button class="generate-btn" onclick="generateBatch()" id="generateBtn">Generate</button>
+            
+            <div class="section-title">
+                <span>PROMPTS</span>
+                <button class="clear-btn" onclick="clearAllPrompts()">Clear</button>
+            </div>
+            <div id="selectedPrompts" class="selected-prompts"></div>
+        </div>
+
+        <!-- Right Panel: Counterfact Dataset -->
+        <div class="right-panel">
+            <div class="search-container">
+                <input type="text" id="searchInput" class="search-input" placeholder="Search by Case ID, Subject, Target New, or Target Old...">
+                <div id="searchSuggestions" class="search-suggestions"></div>
+            </div>
+            <div id="counterfactList"></div>
+            <div class="pagination">
+                <button onclick="previousPage()" id="prevBtn">Previous</button>
+                <span id="pageInfo">Page 1</span>
+                <button onclick="nextPage()" id="nextBtn">Next</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Benchmark functionality removed - use notebook instead -->
+    <!--
+        <div style="max-width: 800px; margin: 0 auto; padding: 40px;">
+            <h2 style="text-align: center; margin-bottom: 40px; font-size: 32px; font-weight: normal;">Benchmark Configuration</h2>
+            
+            <div class="form-group" style="margin-bottom: 30px;">
+                <div class="field-label" style="font-size: 16px; margin-bottom: 10px;">Model</div>
+                <select id="benchmarkModelName" style="width: 100%; padding: 15px; border: 2px solid black; font-size: 16px;">
+                    <option value="google/gemma-2-2b">Gemma 2 2B</option>
+                    <option value="google/gemma-2-9b">Gemma 2 9B</option>
+                    <option value="google/gemma-2-2b-it">Gemma 2 2B Instruct</option>
+                    <option value="google/gemma-2-9b-it">Gemma 2 9B Instruct</option>
+                    <option value="microsoft/phi-2">Phi-2</option>
+                    <option value="Qwen/Qwen2-1.5B">Qwen2 1.5B</option>
+                    <option value="Qwen/Qwen2-7B">Qwen2 7B</option>
+                    <option value="meta-llama/Llama-2-7b-hf">Llama 2 7B</option>
+                    <option value="custom">Custom</option>
+                </select>
+                <input type="text" id="benchmarkCustomModelName" placeholder="Custom model" style="width: 100%; padding: 15px; border: 2px solid black; font-size: 16px; margin-top: 10px; display: none;">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 30px;">
+                <div class="field-label" style="font-size: 16px; margin-bottom: 10px;">CUDA Devices</div>
+                <input type="text" id="benchmarkCudaDevices" placeholder="0" value="0" style="width: 100%; padding: 15px; border: 2px solid black; font-size: 16px;">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
+                <div class="form-group">
+                    <div class="field-label" style="font-size: 16px; margin-bottom: 10px;">Max Length</div>
+                    <input type="number" id="benchmarkMaxLength" value="15" min="1" max="2048" style="width: 100%; padding: 15px; border: 2px solid black; font-size: 16px;">
+                </div>
+
+                <div class="form-group">
+                    <div class="field-label" style="font-size: 16px; margin-bottom: 10px;">Temperature</div>
+                    <input type="number" id="benchmarkTemperature" value="0.7" min="0" max="2" step="0.1" style="width: 100%; padding: 15px; border: 2px solid black; font-size: 16px;">
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 30px;">
+                <div class="form-group">
+                    <div class="field-label" style="font-size: 16px; margin-bottom: 10px;">
+                        <input type="checkbox" id="benchmarkUseSubsampling" checked style="margin-right: 8px;">
+                        Use Subsampling
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <div class="field-label" style="font-size: 16px; margin-bottom: 10px;">Subsampling Size</div>
+                    <input type="number" id="benchmarkSubsamplingSize" value="500" min="1" style="width: 100%; padding: 15px; border: 2px solid black; font-size: 16px;">
+                </div>
+
+                <div class="form-group">
+                    <div class="field-label" style="font-size: 16px; margin-bottom: 10px;">Seed</div>
+                    <input type="number" id="benchmarkSeed" value="42" style="width: 100%; padding: 15px; border: 2px solid black; font-size: 16px;">
+                </div>
+            </div>
+            
+            <div class="form-group" style="margin-bottom: 30px;">
+                <div class="field-label" style="font-size: 16px; margin-bottom: 10px;">Dataset</div>
+                <select id="benchmarkDataset" style="width: 100%; padding: 15px; border: 2px solid black; font-size: 16px;">
+                    <option value="">-- Select Dataset --</option>
+                    <option value="counterfact">CounterFact</option>
+                    <option value="mquake-cf">MQuAKE-CF</option>
+                    <option value="wikiupdate">WikiUpdate</option>
+                </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 30px;">
+                <div class="field-label" style="font-size: 16px; margin-bottom: 10px;">Algorithm</div>
+                <select id="benchmarkAlgorithm" style="width: 100%; padding: 15px; border: 2px solid black; font-size: 16px;">
+                    <option value="">-- Select Algorithm --</option>
+                    <option value="icl">ICL (In-Context Learning)</option>
+                    <option value="rome">ROME</option>
+                    <option value="memit">MEMIT</option>
+                    <option value="ft">Fine-tuning</option>
+                </select>
+            </div>
+
+            <button class="generate-btn" onclick="startEvaluation()" id="startEvalBtn" 
+                    style="width: 100%; padding: 20px; font-size: 18px; margin-top: 30px;"
+                    disabled>Start Evaluation</button>
+
+            <div id="algorithmInfo" style="margin-top: 40px; padding: 20px; background: #f9f9f9; border: 1px solid #ddd; display: none;">
+                <h3 style="margin-top: 0;">Algorithm Information</h3>
+                <div id="algorithmInfoContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Benchmark Results Page -->
+    <div id="benchmarkResultsPage" class="main-container" style="display: none;">
+        <div class="left-panel">
+            <div class="section-title" style="display: flex; justify-content: space-between; align-items: center;">
+                <span id="resultsPageTitle">Benchmark Results</span>
+                <button onclick="backToSelection()" style="padding: 8px 16px; background: #f0f0f0; border: 1px solid black; cursor: pointer;">← Back to Selection</button>
+            </div>
+            
+            <div id="benchmarkMetrics" style="padding: 20px; background: #f0f0f0; border: 1px solid black; margin-bottom: 20px;">
+                <h3 style="margin-top: 0;">Overall Metrics</h3>
+                <div id="metricsContent">
+                    <p style="color: #999;">Click "Start Evaluation" to see metrics</p>
+                </div>
+            </div>
+
+            <div class="section-title">Evaluation Details</div>
+            <div id="evaluationDetails" style="padding: 20px;">
+                <p style="color: #999;">Evaluation results will appear here</p>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <div class="section-title" style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Case Results</span>
+                <button onclick="downloadResultsJSON()" id="downloadJSONBtn" style="padding: 8px 16px; background: #f0f0f0; border: 1px solid black; cursor: pointer; display: none;">Download JSON</button>
+            </div>
+            
+            <div id="scoreStatistics" style="padding: 15px; background: #f9f9f9; border: 1px solid #ddd; margin-bottom: 15px; display: none;">
+                <h4 style="margin-top: 0; margin-bottom: 10px;">Score Statistics</h4>
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; font-size: 14px;">
+                    <div>
+                        <strong>PR (Paraphrase Reliability)</strong><br>
+                        Mean: <span id="prMean">-</span><br>
+                        Std: <span id="prStd">-</span>
+                    </div>
+                    <div>
+                        <strong>GR (Generation Portability)</strong><br>
+                        Mean: <span id="grMean">-</span><br>
+                        Std: <span id="grStd">-</span>
+                    </div>
+                    <div>
+                        <strong>NR (Neighborhood Locality)</strong><br>
+                        Mean: <span id="nrMean">-</span><br>
+                        Std: <span id="nrStd">-</span>
+                    </div>
+                    <div>
+                        <strong>AT (Attribute Locality)</strong><br>
+                        Mean: <span id="atMean">-</span><br>
+                        Std: <span id="atStd">-</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="caseResults" style="overflow-x: auto; border: 1px solid black;">
+                <table id="resultsTable" style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                    <thead>
+                        <tr style="background: #f0f0f0; border-bottom: 2px solid black;">
+                            <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Case ID</th>
+                            <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Subject</th>
+                            <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Target New</th>
+                            <th style="padding: 10px; border: 1px solid #ddd; text-align: center; cursor: help; position: relative;" 
+                                onmouseover="showTooltip(event, 'PR - Paraphrase Reliability: Score based on whether paraphrase_prompts changed to target_new. Calculation: target_new appears in generated text = 1, else 0.')"
+                                onmouseout="hideTooltip()">PR</th>
+                            <th style="padding: 10px; border: 1px solid #ddd; text-align: center; cursor: help; position: relative;"
+                                onmouseover="showTooltip(event, 'GR - Generation Portability: Score based on whether generation_prompts changed to target_new. Calculation: target_new appears in generated text = 1, else 0.')"
+                                onmouseout="hideTooltip()">GR</th>
+                            <th style="padding: 10px; border: 1px solid #ddd; text-align: center; cursor: help; position: relative;"
+                                onmouseover="showTooltip(event, 'NR - Neighborhood Locality: Score based on whether neighborhood_prompts remained unchanged. Calculation: target_new does NOT appear in generated text = 1, else 0.')"
+                                onmouseout="hideTooltip()">NR</th>
+                            <th style="padding: 10px; border: 1px solid #ddd; text-align: center; cursor: help; position: relative;"
+                                onmouseover="showTooltip(event, 'AT - Attribute Locality: Score based on whether attribute_prompts remained unchanged. Calculation: target_new does NOT appear in generated text = 1, else 0.')"
+                                onmouseout="hideTooltip()">AT</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsTableBody">
+                        <tr>
+                            <td colspan="7" style="padding: 20px; text-align: center; color: #999;">Case-by-case results will appear here</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentPage = 1;
+        const perPage = 5;
+        let totalItems = 0;
+        let selectedPrompts = new Set();
+        let promptOutputs = new Map(); // Map to store outputs for each prompt
+        let allCounterfactData = []; // Store all data for search
+        let filteredData = []; // Store filtered search results
+        let isSearchMode = false;
+
+        // Model selection
+        document.getElementById('modelName').addEventListener('change', function() {
+            const customInput = document.getElementById('customModelName');
+            if (this.value === 'custom') {
+                customInput.style.display = 'block';
+            } else {
+                customInput.style.display = 'none';
+            }
+        });
+
+        // Custom prompt input - Enter key to add, Shift+Enter for new line
+        document.getElementById('customPromptInput').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                const prompt = this.value.trim();
+                if (prompt) {
+                    selectedPrompts.add(prompt);
+                    updateSelectedPrompts();
+                    this.value = '';
+                }
+            }
+            // Shift+Enter allows new line (default behavior)
+        });
+
+        async function loadModel() {
+            const modelSelect = document.getElementById('modelName').value;
+            let modelName = '';
+            
+            if (modelSelect === 'custom') {
+                modelName = document.getElementById('customModelName').value.trim();
+                if (!modelName) {
+                    updateLoadStatus('Enter custom model name', 'error');
+                    return;
+                }
+            } else {
+                modelName = modelSelect;
+            }
+            
+            const cudaDevices = document.getElementById('cudaDevices').value.trim();
+            const btn = document.getElementById('loadBtn');
+            btn.disabled = true;
+            updateLoadStatus('Loading...', 'info');
+
+            try {
+                const response = await fetch('/api/load_model', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        model_name: modelName,
+                        cuda_visible_devices: cudaDevices
+                    })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    updateLoadStatus('Loaded', 'success');
+                } else {
+                    updateLoadStatus('Error: ' + (data.error || 'Failed'), 'error');
+                }
+            } catch (error) {
+                updateLoadStatus('Error: ' + error.message, 'error');
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        function updateLoadStatus(message, type) {
+            const status = document.getElementById('loadStatus');
+            status.textContent = message;
+            status.style.color = type === 'success' ? 'green' : type === 'error' ? 'red' : '#666';
+        }
+
+        async function generateBatch() {
+            if (selectedPrompts.size === 0) {
+                alert('Add prompts first');
+                return;
+            }
+
+            const maxLength = parseInt(document.getElementById('maxLength').value);
+            const temperature = parseFloat(document.getElementById('temperature').value);
+            const systemPrompt = document.getElementById('systemPromptInput').value.trim();
+            const prompts = Array.from(selectedPrompts).filter(p => p && p.trim());
+
+            if (prompts.length === 0) {
+                alert('No valid prompts to generate');
+                return;
+            }
+
+            // Prepend system prompt to each prompt
+            const promptsWithSystem = prompts.map(p => {
+                if (systemPrompt) {
+                    return systemPrompt + ' ' + p;
+                }
+                return p;
+            });
+
+            const btn = document.getElementById('generateBtn');
+            btn.disabled = true;
+            btn.textContent = 'Generating...';
+            
+            // Set all outputs to loading
+            prompts.forEach(prompt => {
+                promptOutputs.set(prompt, 'Generating...');
+            });
+            updateSelectedPrompts();
+
+            try {
+                const response = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        prompts: promptsWithSystem,
+                        max_length: maxLength,
+                        temperature: temperature,
+                        top_p: 0.9
+                    })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    // Store outputs for each prompt (map back to original prompts)
+                    data.results.forEach((result, idx) => {
+                        if (idx < prompts.length) {
+                            const originalPrompt = prompts[idx];
+                            promptOutputs.set(originalPrompt, result.generated_text);
+                        }
+                    });
+                    updateSelectedPrompts();
+                } else {
+                    prompts.forEach(prompt => {
+                        promptOutputs.set(prompt, 'Error: ' + (data.error || 'Generation failed'));
+                    });
+                    updateSelectedPrompts();
+                }
+            } catch (error) {
+                prompts.forEach(prompt => {
+                    promptOutputs.set(prompt, 'Error: ' + error.message);
+                });
+                updateSelectedPrompts();
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Generate';
+            }
+        }
+
+        async function loadAllCounterfactData() {
+            try {
+                const response = await fetch('/api/counterfact/all');
+                const data = await response.json();
+                if (response.ok) {
+                    allCounterfactData = data.data || [];
+                }
+            } catch (error) {
+                console.error('Error loading all data:', error);
+            }
+        }
+
+        async function loadCounterfactData(page = 1) {
+            try {
+                if (isSearchMode && filteredData.length > 0) {
+                    // Use filtered data
+                    const startIdx = (page - 1) * perPage;
+                    const endIdx = startIdx + perPage;
+                    displayCounterfactData(filteredData.slice(startIdx, endIdx));
+                    totalItems = filteredData.length;
+                    currentPage = page;
+                    updatePagination();
+                    return;
+                }
+
+                const response = await fetch(`/api/counterfact?page=${page}&per_page=${perPage}`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    totalItems = data.total;
+                    currentPage = data.page;
+                    displayCounterfactData(data.data);
+                    updatePagination();
+                }
+            } catch (error) {
+                console.error('Error loading data:', error);
+            }
+        }
+
+        function searchCases(query) {
+            if (!query || !query.trim()) {
+                isSearchMode = false;
+                filteredData = [];
+                loadCounterfactData(1);
+                return;
+            }
+
+            query = query.toLowerCase().trim();
+            isSearchMode = true;
+
+            filteredData = allCounterfactData.filter(item => {
+                const caseId = String(item.case_id || '').toLowerCase();
+                const subject = (item.subject || '').toLowerCase();
+                const targetNew = (item.target_new || '').toLowerCase();
+                const targetOld = (item.target_old || '').toLowerCase();
+
+                return caseId.includes(query) ||
+                       subject.includes(query) ||
+                       targetNew.includes(query) ||
+                       targetOld.includes(query);
+            });
+
+            currentPage = 1;
+            loadCounterfactData(1);
+        }
+
+        function highlightText(text, query) {
+            if (!query) return escapeHtml(text);
+            const regex = new RegExp(`(${escapeRegex(query)})`, 'gi');
+            const escaped = escapeHtml(text);
+            return escaped.replace(regex, '<span class="suggestion-highlight">$1</span>');
+        }
+
+        function escapeRegex(str) {
+            return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+
+        function showSearchSuggestions(query) {
+            const suggestionsDiv = document.getElementById('searchSuggestions');
+            if (!query || !query.trim()) {
+                suggestionsDiv.classList.remove('show');
+                return;
+            }
+
+            query = query.toLowerCase().trim();
+            const matches = allCounterfactData.filter(item => {
+                const caseId = String(item.case_id || '').toLowerCase();
+                const subject = (item.subject || '').toLowerCase();
+                const targetNew = (item.target_new || '').toLowerCase();
+                const targetOld = (item.target_old || '').toLowerCase();
+
+                return caseId.includes(query) ||
+                       subject.includes(query) ||
+                       targetNew.includes(query) ||
+                       targetOld.includes(query);
+            }).slice(0, 10); // Limit to 10 suggestions
+
+            if (matches.length === 0) {
+                suggestionsDiv.innerHTML = '<div class="suggestion-item">No matches found</div>';
+                suggestionsDiv.classList.add('show');
+                return;
+            }
+
+            suggestionsDiv.innerHTML = matches.map((item, idx) => {
+                let matchText = '';
+                let matchType = '';
+                
+                if (String(item.case_id).toLowerCase().includes(query)) {
+                    matchText = `Case ID: ${item.case_id}`;
+                    matchType = 'Case ID';
+                } else if (item.subject.toLowerCase().includes(query)) {
+                    matchText = item.subject;
+                    matchType = 'Subject';
+                } else if (item.target_new.toLowerCase().includes(query)) {
+                    matchText = item.target_new;
+                    matchType = 'Target New';
+                } else if (item.target_old.toLowerCase().includes(query)) {
+                    matchText = item.target_old;
+                    matchType = 'Target Old';
+                }
+
+                return `
+                    <div class="suggestion-item" onclick="selectSuggestion('${escapeHtml(query)}')">
+                        <div>${highlightText(matchText, query)}</div>
+                        <div class="suggestion-meta">${matchType} - Case ID: ${item.case_id}</div>
+                    </div>
+                `;
+            }).join('');
+
+            suggestionsDiv.classList.add('show');
+        }
+
+        function selectSuggestion(query) {
+            document.getElementById('searchInput').value = query;
+            document.getElementById('searchSuggestions').classList.remove('show');
+            searchCases(query);
+        }
+
+        function displayCounterfactData(items) {
+            const listDiv = document.getElementById('counterfactList');
+            
+            if (items.length === 0) {
+                listDiv.innerHTML = '<p>No data available</p>';
+                return;
+            }
+
+            const html = items.map(item => `
+                <div class="case-item">
+                    <div class="case-header">Case ID: ${item.case_id} <span style="font-size: 12px; color: #666; margin-left: 10px;">(${item.split || 'train'})</span></div>
+                    <div class="case-content">
+                        <div class="case-left">
+                            <div>
+                                <div class="field-label">Subject</div>
+                                <div class="field-value subject">
+                                    ${escapeHtml(item.subject)}
+                                </div>
+                            </div>
+                            <div>
+                                <div class="field-label">Target</div>
+                                <div class="target-container">
+                                    <div class="target-item">
+                                        <div class="target-item-label">OLD</div>
+                                        <div class="field-value target-old">
+                                            ${escapeHtml(item.target_old)}
+                                        </div>
+                                    </div>
+                                    <div class="target-item">
+                                        <div class="target-item-label">NEW</div>
+                                        <div class="field-value target-new">
+                                            ${escapeHtml(item.target_new)}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="field-label">Prompt</div>
+                                <div class="field-value" onclick="togglePrompt('${escapeHtml(item.prompt_full || item.prompt)}', this)">
+                                    ${escapeHtml(item.prompt_full || item.prompt)}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="case-right">
+                            <div>
+                                <div class="field-label">Paraphrase Prompts</div>
+                                <div class="prompt-list">
+                                    ${(item.paraphrase_prompts || []).slice(0, 3).length > 0 
+                                        ? (item.paraphrase_prompts || []).slice(0, 3).map((p, idx) => `
+                                            <div class="prompt-item" data-prompt="${escapeHtml(p).replace(/"/g, '&quot;')}" onclick="togglePromptFromData(this)">${escapeHtml(p)}</div>
+                                        `).join('')
+                                        : '<div style="color: #999; font-size: 12px; padding: 8px;">No prompts</div>'}
+                                </div>
+                            </div>
+                            <div>
+                                <div class="field-label">Neighborhood Prompts</div>
+                                <div class="prompt-list">
+                                    ${(item.neighborhood_prompts || []).slice(0, 3).length > 0 
+                                        ? (item.neighborhood_prompts || []).slice(0, 3).map((p, idx) => `
+                                            <div class="prompt-item" data-prompt="${escapeHtml(p).replace(/"/g, '&quot;')}" onclick="togglePromptFromData(this)">${escapeHtml(p)}</div>
+                                        `).join('')
+                                        : '<div style="color: #999; font-size: 12px; padding: 8px;">No prompts</div>'}
+                                </div>
+                            </div>
+                            <div>
+                                <div class="field-label">Attribute Prompts</div>
+                                <div class="prompt-list">
+                                    ${(item.attribute_prompts || []).slice(0, 3).length > 0 
+                                        ? (item.attribute_prompts || []).slice(0, 3).map((p, idx) => `
+                                            <div class="prompt-item" data-prompt="${escapeHtml(p).replace(/"/g, '&quot;')}" onclick="togglePromptFromData(this)">${escapeHtml(p)}</div>
+                                        `).join('')
+                                        : '<div style="color: #999; font-size: 12px; padding: 8px;">No prompts</div>'}
+                                </div>
+                            </div>
+                            <div>
+                                <div class="field-label">Generation Prompts</div>
+                                <div class="prompt-list">
+                                    ${(() => {
+                                        const uniquePrompts = [...new Set(item.generation_prompts || [])].slice(0, 3);
+                                        return uniquePrompts.length > 0 
+                                            ? uniquePrompts.map((p, idx) => `
+                                                <div class="prompt-item" data-prompt="${escapeHtml(p).replace(/"/g, '&quot;')}" onclick="togglePromptFromData(this)">${escapeHtml(p)}</div>
+                                            `).join('')
+                                            : '<div style="color: #999; font-size: 12px; padding: 8px;">No prompts</div>';
+                                    })()}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            listDiv.innerHTML = html;
+            
+            // Re-apply selection state after rendering
+            selectedPrompts.forEach(prompt => {
+                updateElementSelection(prompt);
+            });
+        }
+
+        function togglePrompt(prompt, element) {
+            if (selectedPrompts.has(prompt)) {
+                selectedPrompts.delete(prompt);
+                promptOutputs.delete(prompt);
+                if (element) element.classList.remove('selected');
+            } else {
+                selectedPrompts.add(prompt);
+                if (element) element.classList.add('selected');
+            }
+            updateSelectedPrompts();
+            // Update all elements with the same prompt
+            updateElementSelection(prompt);
+        }
+
+        function togglePromptFromData(element) {
+            const prompt = element.getAttribute('data-prompt');
+            if (prompt) {
+                togglePrompt(prompt, element);
+            }
+        }
+
+        function clearAllPrompts() {
+            selectedPrompts.clear();
+            promptOutputs.clear();
+            updateSelectedPrompts();
+            // Update all elements to remove selected class
+            document.querySelectorAll('.field-value, .prompt-item').forEach(el => {
+                el.classList.remove('selected');
+            });
+        }
+
+        function updateElementSelection(prompt) {
+            document.querySelectorAll('.field-value, .prompt-item').forEach(el => {
+                if (el.textContent.trim() === prompt || el.textContent.includes(prompt)) {
+                    if (selectedPrompts.has(prompt)) {
+                        el.classList.add('selected');
+                    } else {
+                        el.classList.remove('selected');
+                    }
+                }
+            });
+        }
+
+        function updateSelectedPrompts() {
+            const container = document.getElementById('selectedPrompts');
+            if (selectedPrompts.size === 0) {
+                container.innerHTML = '<p style="color: #999; font-size: 13px;">No prompts added</p>';
+                return;
+            }
+
+            container.innerHTML = Array.from(selectedPrompts).map(prompt => {
+                const output = promptOutputs.get(prompt) || '';
+                const isLoading = output === 'Generating...';
+                return `
+                <div class="selected-prompt-item">
+                    <div class="prompt-header">
+                        <div class="prompt-text">${escapeHtml(prompt)}</div>
+                        <button class="remove-btn" onclick="removePrompt('${escapeHtml(prompt)}')">×</button>
+                    </div>
+                    <div class="prompt-output ${isLoading ? 'loading' : ''}">${escapeHtml(output)}</div>
+                </div>
+            `;
+            }).join('');
+        }
+
+        function removePrompt(prompt) {
+            selectedPrompts.delete(prompt);
+            promptOutputs.delete(prompt);
+            updateSelectedPrompts();
+            updateElementSelection(prompt);
+        }
+
+        function updatePagination() {
+            document.getElementById('pageInfo').textContent = 
+                `Page ${currentPage} of ${Math.ceil(totalItems / perPage)}`;
+            document.getElementById('prevBtn').disabled = currentPage <= 1;
+            document.getElementById('nextBtn').disabled = currentPage >= Math.ceil(totalItems / perPage);
+        }
+
+        function previousPage() {
+            if (currentPage > 1) {
+                loadCounterfactData(currentPage - 1);
+            }
+        }
+
+        function nextPage() {
+            const maxPage = Math.ceil(totalItems / perPage);
+            if (currentPage < maxPage) {
+                loadCounterfactData(currentPage + 1);
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Page toggle function
+        let currentView = 'generation';
+        function togglePage() {
+            const generationPage = document.getElementById('generationPage');
+            const benchmarkSelectionPage = document.getElementById('benchmarkSelectionPage');
+            const benchmarkResultsPage = document.getElementById('benchmarkResultsPage');
+            const toggleBtn = document.getElementById('pageToggleBtn');
+            
+            if (currentView === 'generation') {
+                generationPage.style.display = 'none';
+                benchmarkSelectionPage.style.display = 'grid';
+                benchmarkResultsPage.style.display = 'none';
+                toggleBtn.textContent = 'Generation';
+                currentView = 'benchmark';
+            } else {
+                generationPage.style.display = 'grid';
+                benchmarkSelectionPage.style.display = 'none';
+                benchmarkResultsPage.style.display = 'none';
+                toggleBtn.textContent = 'Benchmark';
+                currentView = 'generation';
+            }
+        }
+
+        function backToSelection() {
+            document.getElementById('benchmarkSelectionPage').style.display = 'grid';
+            document.getElementById('benchmarkResultsPage').style.display = 'none';
+        }
+
+        // Enable/disable Start Eval button based on selections
+        function updateStartButton() {
+            const dataset = document.getElementById('benchmarkDataset').value;
+            const algorithm = document.getElementById('benchmarkAlgorithm').value;
+            const btn = document.getElementById('startEvalBtn');
+            const algorithmInfo = document.getElementById('algorithmInfo');
+            const algorithmInfoContent = document.getElementById('algorithmInfoContent');
+            
+            if (dataset && algorithm) {
+                btn.disabled = false;
+                // Show algorithm info
+                algorithmInfo.style.display = 'block';
+                updateAlgorithmInfo(dataset, algorithm);
+            } else {
+                btn.disabled = true;
+                algorithmInfo.style.display = 'none';
+            }
+        }
+
+        function updateAlgorithmInfo(dataset, algorithm) {
+            const content = document.getElementById('algorithmInfoContent');
+            let info = '';
+            
+            if (dataset === 'counterfact' && algorithm === 'icl') {
+                info = `
+                    <strong>CounterFact - ICL (In-Context Learning):</strong><br><br>
+                    1. <strong>System Prompt:</strong> "주어진 주어 관계에 대해서 목적어를 생성하라"<br><br>
+                    2. <strong>Knowledge Editing:</strong><br>
+                       - Main prompt에 target_new 값을 넣어 문장을 완성<br>
+                       - 예시: "Michael Jordan plays" → "Michael Jordan plays soccer" (target_new)<br><br>
+                    3. <strong>Before/After 평가:</strong><br>
+                       - <strong>Reliability (Paraphrase):</strong> paraphrase_prompts에 대해 target_new로 바뀌는지 평가 (변화 = 1점)<br>
+                       - <strong>Portability (Generation):</strong> generation_prompts에 대해 target_new로 바뀌는지 평가 (변화 = 1점)<br>
+                       - <strong>Locality (Neighborhood/Attribute):</strong> neighborhood_prompts와 attribute_prompts는 바뀌지 않는지 평가 (유지 = 1점)
+                `;
+            } else {
+                info = `<p>Configuration: ${dataset} - ${algorithm}</p>`;
+            }
+            content.innerHTML = info;
+        }
+
+        let progressPollInterval = null;
+        let currentTaskId = null;
+
+        async function startEvaluation() {
+            const dataset = document.getElementById('benchmarkDataset').value;
+            const algorithm = document.getElementById('benchmarkAlgorithm').value;
+            const modelSelect = document.getElementById('benchmarkModelName').value;
+            const customModel = document.getElementById('benchmarkCustomModelName').value.trim();
+            const cudaDevices = document.getElementById('benchmarkCudaDevices').value.trim();
+            const maxLength = parseInt(document.getElementById('benchmarkMaxLength').value);
+            const temperature = parseFloat(document.getElementById('benchmarkTemperature').value);
+            const useSubsampling = document.getElementById('benchmarkUseSubsampling').checked;
+            const subsamplingSize = parseInt(document.getElementById('benchmarkSubsamplingSize').value);
+            const seed = parseInt(document.getElementById('benchmarkSeed').value);
+            const btn = document.getElementById('startEvalBtn');
+            
+            if (!dataset || !algorithm) {
+                alert('Please select both dataset and algorithm');
+                return;
+            }
+            
+            let modelName = modelSelect === 'custom' ? customModel : modelSelect;
+            if (!modelName) {
+                alert('Please enter model name');
+                return;
+            }
+            
+            // Disable button
+            btn.disabled = true;
+            btn.textContent = 'Starting...';
+            
+            // Switch to results page
+            document.getElementById('benchmarkSelectionPage').style.display = 'none';
+            document.getElementById('benchmarkResultsPage').style.display = 'grid';
+            
+            // Update title
+            document.getElementById('resultsPageTitle').textContent = `Benchmark: ${dataset} - ${algorithm}`;
+            
+            // Show initial loading
+            document.getElementById('metricsContent').innerHTML = '<p>Starting evaluation...</p>';
+            document.getElementById('evaluationDetails').innerHTML = '<p style="color: #999;">Initializing...</p>';
+            document.getElementById('resultsTableBody').innerHTML = '<tr><td colspan="7" style="padding: 20px; text-align: center; color: #999;">Waiting for results...</td></tr>';
+            
+            try {
+                // First load model if needed
+                const loadResponse = await fetch('/api/load_model', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        model_name: modelName,
+                        cuda_visible_devices: cudaDevices
+                    })
+                });
+                
+                if (!loadResponse.ok) {
+                    const loadData = await loadResponse.json();
+                    document.getElementById('metricsContent').innerHTML = `<p style="color: red;">Error loading model: ${loadData.error || 'Failed'}</p>`;
+                    btn.disabled = false;
+                    btn.textContent = 'Start Evaluation';
+                    return;
+                }
+                
+                // Start evaluation
+                const response = await fetch('/api/benchmark/update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        dataset: dataset,
+                        algorithm: algorithm,
+                        max_new_tokens: maxLength,
+                        temperature: temperature,
+                        use_subsampling: useSubsampling,
+                        subsampling_size: subsamplingSize,
+                        seed: seed
+                    })
+                });
+
+                const data = await response.json();
+                if (response.ok && data.task_id) {
+                    currentTaskId = data.task_id;
+                    // Start polling for progress
+                    startProgressPolling(data.task_id, dataset, algorithm);
+                } else {
+                    document.getElementById('metricsContent').innerHTML = `<p style="color: red;">Error: ${data.error || 'Failed to start evaluation'}</p>`;
+                    btn.disabled = false;
+                    btn.textContent = 'Start Evaluation';
+                }
+            } catch (error) {
+                document.getElementById('metricsContent').innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+                btn.disabled = false;
+                btn.textContent = 'Start Evaluation';
+            }
+        }
+
+        function startProgressPolling(taskId, dataset, algorithm) {
+            // Clear any existing interval
+            if (progressPollInterval) {
+                clearInterval(progressPollInterval);
+            }
+            
+            // Poll every 500ms
+            progressPollInterval = setInterval(async () => {
+                try {
+                    const response = await fetch(`/api/benchmark/progress/${taskId}`);
+                    const progress = await response.json();
+                    
+                    updateProgressDisplay(progress, dataset, algorithm);
+                    
+                    // Stop polling if completed or errored
+                    if (progress.status === 'completed' || progress.status === 'error') {
+                        clearInterval(progressPollInterval);
+                        progressPollInterval = null;
+                        // Re-enable button and allow back navigation
+                        document.getElementById('startEvalBtn').disabled = false;
+                        document.getElementById('startEvalBtn').textContent = 'Start Evaluation';
+                    }
+                } catch (error) {
+                    console.error('Error fetching progress:', error);
+                }
+            }, 500);
+        }
+
+        function updateProgressDisplay(progress, dataset, algorithm) {
+            // Update metrics section with progress
+            let metricsHtml = '';
+            if (progress.status === 'running') {
+                const elapsedTime = progress.elapsed_time || 0;
+                const estimatedRemaining = progress.estimated_remaining_time || 0;
+                const formatTime = (seconds) => {
+                    if (!seconds || seconds < 0) return 'N/A';
+                    const mins = Math.floor(seconds / 60);
+                    const secs = Math.floor(seconds % 60);
+                    return `${mins}m ${secs}s`;
+                };
+                
+                metricsHtml = `
+                    <div style="margin-bottom: 15px;">
+                        <div style="font-size: 16px; margin-bottom: 10px;">
+                            <strong>Progress:</strong> ${progress.completed_cases || 0} / ${progress.total_cases || 0} cases
+                            (${progress.progress_percentage.toFixed(1)}%)
+                        </div>
+                        <div style="width: 100%; background: #ddd; height: 20px; border: 1px solid #999;">
+                            <div style="width: ${progress.progress_percentage}%; background: #4CAF50; height: 100%; transition: width 0.3s;"></div>
+                        </div>
+                        <div style="margin-top: 10px; color: #666; display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                            <div>
+                                <strong>Elapsed Time:</strong> ${formatTime(elapsedTime)}
+                            </div>
+                            <div>
+                                <strong>Estimated Remaining:</strong> ${formatTime(estimatedRemaining)}
+                            </div>
+                        </div>
+                        <div style="margin-top: 10px; color: #666;">
+                            <strong>Current:</strong> ${escapeHtml(progress.current_subject || 'N/A')}
+                        </div>
+                    </div>
+                `;
+            } else if (progress.status === 'completed' && progress.metrics) {
+                const metrics = progress.metrics;
+                metricsHtml = `
+                    <div style="font-size: 18px;">
+                        <div style="margin-bottom: 10px;"><strong>Reliability:</strong> ${(metrics.reliability * 100).toFixed(2)}%</div>
+                        <div style="margin-bottom: 10px;"><strong>Portability:</strong> ${(metrics.portability * 100).toFixed(2)}%</div>
+                        <div style="margin-bottom: 10px;"><strong>Locality:</strong> ${(metrics.locality * 100).toFixed(2)}%</div>
+                        <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #ccc;">
+                            <strong>Total Cases:</strong> ${metrics.total_cases || 0}
+                        </div>
+                    </div>
+                `;
+            } else if (progress.status === 'error') {
+                metricsHtml = `<p style="color: red;">Error: ${escapeHtml(progress.error || 'Unknown error')}</p>`;
+            }
+            document.getElementById('metricsContent').innerHTML = metricsHtml;
+            
+            // Update evaluation details (only if not showing case details)
+            const detailsDiv = document.getElementById('evaluationDetails');
+            const isShowingCaseDetails = detailsDiv.innerHTML.includes('Case') && detailsDiv.innerHTML.includes('Details');
+            
+            if (!isShowingCaseDetails) {
+                if (progress.status === 'running') {
+                    detailsDiv.innerHTML = `
+                        <p><strong>Status:</strong> Running</p>
+                        <p><strong>Current Case:</strong> ${progress.current_case} / ${progress.total_cases}</p>
+                        <p><strong>Processing:</strong> ${escapeHtml(progress.current_subject || 'N/A')}</p>
+                        <p style="margin-top: 15px; color: #666; font-size: 12px;">💡 Click on a Case ID in the table to view detailed JSON results</p>
+                    `;
+                } else if (progress.status === 'completed') {
+                    detailsDiv.innerHTML = `
+                        <p><strong>Status:</strong> Completed</p>
+                        <p>Evaluation finished successfully. Results are displayed below.</p>
+                        <p style="margin-top: 15px; color: #666; font-size: 12px;">💡 Click on a Case ID in the table to view detailed JSON results</p>
+                    `;
+                } else if (progress.status === 'error') {
+                    detailsDiv.innerHTML = `
+                        <p style="color: red;"><strong>Status:</strong> Error</p>
+                        <p style="color: red;">${escapeHtml(progress.error || 'Unknown error')}</p>
+                    `;
+                }
+            }
+            
+            // Update case results (table format) - real-time as samples are added
+            if (progress.results && Object.keys(progress.results).length > 0) {
+                displayCaseResults(progress.results, dataset, algorithm, false); // false = incremental update
+            }
+            
+            // If completed, show final results
+            if (progress.status === 'completed' && progress.results) {
+                displayBenchmarkResults({
+                    results: progress.results,
+                    metrics: progress.metrics
+                }, dataset, algorithm);
+                displayCaseResults(progress.results, dataset, algorithm, true); // true = final update with stats
+            }
+        }
+
+        function displayBenchmarkResults(data, dataset, algorithm) {
+            // Display metrics
+            const metrics = data.metrics || {};
+            document.getElementById('metricsContent').innerHTML = `
+                <div style="font-size: 18px;">
+                    <div style="margin-bottom: 10px;"><strong>Reliability:</strong> ${(metrics.reliability * 100).toFixed(2)}%</div>
+                    <div style="margin-bottom: 10px;"><strong>Portability:</strong> ${(metrics.portability * 100).toFixed(2)}%</div>
+                    <div style="margin-bottom: 10px;"><strong>Locality:</strong> ${(metrics.locality * 100).toFixed(2)}%</div>
+                    <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #ccc;">
+                        <strong>Total Cases:</strong> ${metrics.total_cases || 0}
+                    </div>
+                </div>
+            `;
+            
+            // Display evaluation details
+            displayEvaluationDetails(data.results, dataset, algorithm);
+        }
+
+        function displayCaseResults(results, dataset, algorithm, isFinal = false) {
+            // Store results for JSON download
+            currentResultsData = results;
+            
+            if (!results || typeof results !== 'object') {
+                document.getElementById('resultsTableBody').innerHTML = '<tr><td colspan="7" style="padding: 20px; text-align: center; color: #999;">No results</td></tr>';
+                return;
+            }
+            
+            const cases = Object.values(results);
+            const tableBody = document.getElementById('resultsTableBody');
+            
+            // Calculate scores for each case
+            const caseScores = cases.map(caseResult => {
+                const eval_data = caseResult.eval || {};
+                
+                // PR: Paraphrase Reliability
+                const pr_scores = eval_data['icl_scores_paraphrase_prompts'] || [];
+                const pr_avg = pr_scores.length > 0 ? (pr_scores.reduce((a, b) => a + b, 0) / pr_scores.length) : 0;
+                
+                // GR: Generation Portability
+                const gr_scores = eval_data['icl_scores_generation_prompts'] || [];
+                const gr_avg = gr_scores.length > 0 ? (gr_scores.reduce((a, b) => a + b, 0) / gr_scores.length) : 0;
+                
+                // NR: Neighborhood Locality
+                const nr_scores = eval_data['icl_scores_neighborhood_prompts'] || [];
+                const nr_avg = nr_scores.length > 0 ? (nr_scores.reduce((a, b) => a + b, 0) / nr_scores.length) : 0;
+                
+                // AT: Attribute Locality
+                const at_scores = eval_data['icl_scores_attribute_prompts'] || [];
+                const at_avg = at_scores.length > 0 ? (at_scores.reduce((a, b) => a + b, 0) / at_scores.length) : 0;
+                
+                return {
+                    case_id: caseResult.case_id || 0,
+                    subject: caseResult.subject || '',
+                    target_new: caseResult.target_new || '',
+                    pr: pr_avg,
+                    gr: gr_avg,
+                    nr: nr_avg,
+                    at: at_avg,
+                    pr_scores: pr_scores,
+                    gr_scores: gr_scores,
+                    nr_scores: nr_scores,
+                    at_scores: at_scores
+                };
+            });
+            
+            // Update table - always show all completed cases
+            tableBody.innerHTML = caseScores.map(cs => `
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #ddd; cursor: pointer; color: #0066cc; text-decoration: underline;" 
+                        onclick="showCaseDetails(${cs.case_id})" 
+                        title="Click to view JSON details">${cs.case_id}</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">${escapeHtml(cs.subject)}</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">${escapeHtml(cs.target_new)}</td>
+                    <td style="padding: 10px; border: 1px solid #ddd; text-align: center; font-weight: bold;">${(cs.pr * 100).toFixed(2)}%</td>
+                    <td style="padding: 10px; border: 1px solid #ddd; text-align: center; font-weight: bold;">${(cs.gr * 100).toFixed(2)}%</td>
+                    <td style="padding: 10px; border: 1px solid #ddd; text-align: center; font-weight: bold;">${(cs.nr * 100).toFixed(2)}%</td>
+                    <td style="padding: 10px; border: 1px solid #ddd; text-align: center; font-weight: bold;">${(cs.at * 100).toFixed(2)}%</td>
+                </tr>
+            `).join('');
+            
+            // Only update statistics if final or if we have multiple cases
+            if (isFinal || caseScores.length > 1) {
+                updateScoreStatistics(caseScores);
+                document.getElementById('scoreStatistics').style.display = 'block';
+            }
+            
+            // Show download button once we have results
+            if (caseScores.length > 0) {
+                document.getElementById('downloadJSONBtn').style.display = 'block';
+            }
+        }
+
+        function updateScoreStatistics(caseScores) {
+            // Calculate mean and standard deviation for each score type
+            const calculateStats = (scores) => {
+                if (scores.length === 0) return { mean: 0, std: 0 };
+                const mean = scores.reduce((a, b) => a + b, 0) / scores.length;
+                const variance = scores.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / scores.length;
+                const std = Math.sqrt(variance);
+                return { mean: mean, std: std };
+            };
+            
+            const pr_scores = caseScores.map(cs => cs.pr);
+            const gr_scores = caseScores.map(cs => cs.gr);
+            const nr_scores = caseScores.map(cs => cs.nr);
+            const at_scores = caseScores.map(cs => cs.at);
+            
+            const pr_stats = calculateStats(pr_scores);
+            const gr_stats = calculateStats(gr_scores);
+            const nr_stats = calculateStats(nr_scores);
+            const at_stats = calculateStats(at_scores);
+            
+            document.getElementById('prMean').textContent = (pr_stats.mean * 100).toFixed(2) + '%';
+            document.getElementById('prStd').textContent = (pr_stats.std * 100).toFixed(2) + '%';
+            
+            document.getElementById('grMean').textContent = (gr_stats.mean * 100).toFixed(2) + '%';
+            document.getElementById('grStd').textContent = (gr_stats.std * 100).toFixed(2) + '%';
+            
+            document.getElementById('nrMean').textContent = (nr_stats.mean * 100).toFixed(2) + '%';
+            document.getElementById('nrStd').textContent = (nr_stats.std * 100).toFixed(2) + '%';
+            
+            document.getElementById('atMean').textContent = (at_stats.mean * 100).toFixed(2) + '%';
+            document.getElementById('atStd').textContent = (at_stats.std * 100).toFixed(2) + '%';
+        }
+
+        function showTooltip(event, text) {
+            // Remove existing tooltip
+            const existing = document.getElementById('scoreTooltip');
+            if (existing) existing.remove();
+            
+            // Create tooltip
+            const tooltip = document.createElement('div');
+            tooltip.id = 'scoreTooltip';
+            tooltip.style.cssText = `
+                position: absolute;
+                background: black;
+                color: white;
+                padding: 10px;
+                border-radius: 4px;
+                font-size: 12px;
+                max-width: 300px;
+                z-index: 10000;
+                pointer-events: none;
+                white-space: normal;
+                line-height: 1.4;
+            `;
+            tooltip.textContent = text;
+            
+            document.body.appendChild(tooltip);
+            
+            // Position tooltip
+            const rect = event.target.getBoundingClientRect();
+            tooltip.style.left = (rect.left + rect.width / 2 - tooltip.offsetWidth / 2) + 'px';
+            tooltip.style.bottom = (window.innerHeight - rect.top + 10) + 'px';
+        }
+
+        function hideTooltip() {
+            const tooltip = document.getElementById('scoreTooltip');
+            if (tooltip) tooltip.remove();
+        }
+
+        function downloadResultsJSON() {
+            if (!currentResultsData) {
+                alert('No results to download');
+                return;
+            }
+            
+            const dataStr = JSON.stringify(currentResultsData, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `benchmark_results_${new Date().getTime()}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        function displayEvaluationDetails(results, dataset, algorithm) {
+            // This will be customized per dataset+algorithm combination
+            const details = document.getElementById('evaluationDetails');
+            details.innerHTML = `<p>Evaluation completed for ${dataset} using ${algorithm} algorithm.</p>`;
+        }
+
+        function showCaseDetails(caseId) {
+            if (!currentResultsData || !currentResultsData[caseId]) {
+                alert('Case details not available');
+                return;
+            }
+            
+            const caseData = currentResultsData[caseId];
+            const jsonString = JSON.stringify(caseData, null, 2);
+            
+            const detailsDiv = document.getElementById('evaluationDetails');
+            detailsDiv.innerHTML = `
+                <div style="margin-bottom: 10px;">
+                    <strong>Case ${caseId} Details</strong>
+                    <button onclick="clearCaseDetails()" style="margin-left: 10px; padding: 4px 8px; background: #f0f0f0; border: 1px solid black; cursor: pointer; font-size: 12px;">Clear</button>
+                </div>
+                <pre style="background: #f5f5f5; padding: 15px; border: 1px solid #ddd; overflow-x: auto; font-size: 12px; max-height: 600px; overflow-y: auto; white-space: pre-wrap; word-wrap: break-word;">${escapeHtml(jsonString)}</pre>
+            `;
+        }
+
+        function clearCaseDetails() {
+            const detailsDiv = document.getElementById('evaluationDetails');
+            // Show helpful message
+            if (currentResultsData && Object.keys(currentResultsData).length > 0) {
+                detailsDiv.innerHTML = `
+                    <p><strong>Status:</strong> Results available</p>
+                    <p>Click on a Case ID in the table above to view detailed JSON results.</p>
+                `;
+            } else {
+                detailsDiv.innerHTML = '<p style="color: #999;">Click on a Case ID to view details</p>';
+            }
+        }
+
+        // Update algorithm plan display
+        function updateAlgorithmPlan() {
+            const dataset = document.getElementById('benchmarkDataset').value;
+            const algorithm = document.getElementById('benchmarkAlgorithm').value;
+            const counterfactPlan = document.getElementById('counterfactPlan');
+            const genericPlan = document.getElementById('genericPlan');
+            
+            if (dataset === 'counterfact' && algorithm === 'icl') {
+                counterfactPlan.style.display = 'block';
+                genericPlan.style.display = 'none';
+            } else {
+                counterfactPlan.style.display = 'none';
+                genericPlan.style.display = 'block';
+            }
+        }
+
+        // Add event listeners for dataset and algorithm changes
+        document.addEventListener('DOMContentLoaded', function() {
+            const datasetSelect = document.getElementById('benchmarkDataset');
+            const algorithmSelect = document.getElementById('benchmarkAlgorithm');
+            if (datasetSelect) {
+                datasetSelect.addEventListener('change', updateStartButton);
+            }
+            if (algorithmSelect) {
+                algorithmSelect.addEventListener('change', updateStartButton);
+            }
+            // Initial update
+            setTimeout(updateStartButton, 100);
+        });
+
+        async function updateKnowledge() {
+            const dataset = document.getElementById('benchmarkDataset').value;
+            const algorithm = document.getElementById('benchmarkAlgorithm').value;
+            const btn = document.getElementById('updateBtn');
+            const beforeDiv = document.getElementById('beforeResults');
+            const afterDiv = document.getElementById('afterResults');
+            const resultsDiv = document.getElementById('benchmarkResults');
+
+            btn.disabled = true;
+            btn.textContent = 'Updating...';
+            beforeDiv.textContent = 'Running before evaluation...';
+            afterDiv.textContent = 'Running after evaluation...';
+            resultsDiv.innerHTML = '<p>Processing...</p>';
+
+            try {
+                const response = await fetch('/api/benchmark/update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        dataset: dataset,
+                        algorithm: algorithm
+                    })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    // Display results - new format with dictionary
+                    beforeDiv.innerHTML = formatBenchmarkResults(data.results, 'before');
+                    afterDiv.innerHTML = formatBenchmarkResults(data.results, 'after');
+                    resultsDiv.innerHTML = `
+                        <div style="padding: 15px; background: #f0f0f0; border: 1px solid black;">
+                            <strong>Metrics (Total Cases: ${data.metrics.total_cases || 0}):</strong><br>
+                            Reliability: ${(data.metrics.reliability * 100).toFixed(2)}%<br>
+                            Locality: ${(data.metrics.locality * 100).toFixed(2)}%<br>
+                            Portability: ${(data.metrics.portability * 100).toFixed(2)}%
+                        </div>
+                    `;
+                } else {
+                    beforeDiv.textContent = 'Error: ' + (data.error || 'Update failed');
+                    afterDiv.textContent = '';
+                    resultsDiv.innerHTML = '<p style="color: red;">Error occurred</p>';
+                }
+            } catch (error) {
+                beforeDiv.textContent = 'Error: ' + error.message;
+                afterDiv.textContent = '';
+                resultsDiv.innerHTML = '<p style="color: red;">Error: ' + error.message + '</p>';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Update Knowledge';
+            }
+        }
+
+        function formatBenchmarkResults(results, mode) {
+            if (!results || typeof results !== 'object') {
+                return '<p style="color: #999;">No results</p>';
+            }
+            
+            const cases = Object.values(results);
+            if (cases.length === 0) {
+                return '<p style="color: #999;">No results</p>';
+            }
+            
+            return cases.map((caseResult, idx) => {
+                const eval_data = caseResult.eval || {};
+                let html = `<div style="margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; background: #fff;">
+                    <strong>Case ${caseResult.case_id || idx + 1}: ${escapeHtml(caseResult.subject || '')}</strong><br>
+                    <div style="margin-top: 10px;">
+                        <div style="background: yellow; padding: 5px; margin: 5px 0;"><strong>Subject:</strong> ${escapeHtml(caseResult.subject || '')}</div>
+                        <div style="background: black; color: white; padding: 5px; margin: 5px 0;"><strong>Target Old:</strong> ${escapeHtml(caseResult.target_old || '')}</div>
+                        <div style="background: purple; color: white; padding: 5px; margin: 5px 0;"><strong>Target New:</strong> ${escapeHtml(caseResult.target_new || '')}</div>
+                        <div style="padding: 5px; margin: 5px 0;"><strong>Prompt:</strong> ${escapeHtml(caseResult.prompt || '')}</div>
+                        ${caseResult.icl_prompt ? `<div style="padding: 5px; margin: 5px 0;"><strong>ICL Prompt:</strong> ${escapeHtml(caseResult.icl_prompt)}</div>` : ''}
+                    </div>`;
+                
+                if (mode === 'before') {
+                    // Show baseline results
+                    const baseline_neighborhood = eval_data.baseline_neighborhood_prompts || [];
+                    const baseline_attribute = eval_data.baseline_attribute_prompts || [];
+                    html += `<div style="margin-top: 15px;">
+                        <strong>Baseline Results:</strong><br>
+                        <div style="margin-left: 10px; margin-top: 5px;">
+                            <strong>Neighborhood Prompts:</strong> ${baseline_neighborhood.length} results<br>
+                            <strong>Attribute Prompts:</strong> ${baseline_attribute.length} results
+                        </div>
+                    </div>`;
+                } else {
+                    // Show ICL results with scores
+                    const test_types = [
+                        {key: 'paraphrase_prompts', label: 'Paraphrase (Reliability)', scores_key: 'icl_scores_paraphrase_prompts'},
+                        {key: 'generation_prompts', label: 'Generation (Portability)', scores_key: 'icl_scores_generation_prompts'},
+                        {key: 'neighborhood_prompts', label: 'Neighborhood (Locality)', scores_key: 'icl_scores_neighborhood_prompts'},
+                        {key: 'attribute_prompts', label: 'Attribute (Locality)', scores_key: 'icl_scores_attribute_prompts'}
+                    ];
+                    
+                    html += `<div style="margin-top: 15px;"><strong>ICL Results:</strong></div>`;
+                    for (const test_type of test_types) {
+                        const generated = eval_data['icl_' + test_type.key] || [];
+                        const scores = eval_data[test_type.scores_key] || [];
+                        if (generated.length > 0) {
+                            const avg_score = scores.length > 0 ? (scores.reduce((a, b) => a + b, 0) / scores.length * 100).toFixed(2) : '0.00';
+                            html += `<div style="margin-left: 10px; margin-top: 10px; padding: 8px; background: #f5f5f5; border-left: 3px solid #2196F3;">
+                                <strong>${test_type.label}:</strong> ${avg_score}% (${scores.filter(s => s === 1).length}/${scores.length})<br>
+                                <small style="color: #666;">${generated.slice(0, 2).map(g => escapeHtml(g.substring(0, 50) + (g.length > 50 ? '...' : ''))).join('<br>')}</small>
+                            </div>`;
+                        }
+                    }
+                }
+                
+                html += '</div>';
+                return html;
+            }).join('');
+        }
+
+        function formatResults(results) {
+            // Legacy function for backward compatibility
+            return formatBenchmarkResults(results, 'after');
+        }
+
+        // Search input event handlers
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.addEventListener('input', function(e) {
+                    const query = e.target.value;
+                    showSearchSuggestions(query);
+                });
+
+                searchInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        const query = e.target.value;
+                        document.getElementById('searchSuggestions').classList.remove('show');
+                        searchCases(query);
+                    }
+                });
+            }
+
+            // Close suggestions when clicking outside
+            document.addEventListener('click', function(e) {
+                const searchContainer = document.querySelector('.search-container');
+                if (searchContainer && !searchContainer.contains(e.target)) {
+                    const suggestions = document.getElementById('searchSuggestions');
+                    if (suggestions) {
+                        suggestions.classList.remove('show');
+                    }
+                }
+            });
+        });
+
+        // Initialize
+        window.addEventListener('DOMContentLoaded', () => {
+            loadAllCounterfactData();
+            loadCounterfactData(1);
+            updateSelectedPrompts();
+            
+            // Benchmark model selection
+            const benchmarkModelSelect = document.getElementById('benchmarkModelName');
+            if (benchmarkModelSelect) {
+                benchmarkModelSelect.addEventListener('change', function() {
+                    const customInput = document.getElementById('benchmarkCustomModelName');
+                    if (this.value === 'custom') {
+                        customInput.style.display = 'block';
+                    } else {
+                        customInput.style.display = 'none';
+                    }
+                });
+            }
+            
+            // Subsampling checkbox handler
+            const subsamplingCheckbox = document.getElementById('benchmarkUseSubsampling');
+            const subsamplingSizeInput = document.getElementById('benchmarkSubsamplingSize');
+            const seedInput = document.getElementById('benchmarkSeed');
+            if (subsamplingCheckbox) {
+                subsamplingCheckbox.addEventListener('change', function() {
+                    const disabled = !this.checked;
+                    if (subsamplingSizeInput) subsamplingSizeInput.disabled = disabled;
+                    if (seedInput) seedInput.disabled = disabled;
+                });
+                // Initial state
+                subsamplingCheckbox.dispatchEvent(new Event('change'));
+            }
+        });
+    </script>
+</body>
+</html>
+
