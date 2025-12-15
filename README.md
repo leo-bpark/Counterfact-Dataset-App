@@ -11,7 +11,7 @@
 
 **An interactive web application for exploring the CounterFact dataset used in ROME and other LLM knowledge editing methods**
 
-[Features](#-features) • [Quick Start](#-quick-start) • [Usage](#-usage) • [Dataset](#-dataset)
+[Overview](#-Overview) • [Quick Start](#-quick-start) 
 
 </div>
 
