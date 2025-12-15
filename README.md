@@ -1,6 +1,6 @@
 # CounterFact Dataset Explore App
 
-This is a web application for exploring the CounterFact dataset, which is used for ROME and other LLM knowledge editing methods.
+This is a web application for exploring the CounterFact dataset ([HF](https://huggingface.co/datasets/azhx/counterfact/viewer/default/test)), which is used for ROME and other LLM knowledge editing methods.
 
 <img src="https://d2acbkrrljl37x.cloudfront.net/research/thesis/counterfact_explore.webp" width="100%" height="auto" />
 
